@@ -1,0 +1,346 @@
+---
+title: "Challenge 7: Concepts and Practices of Research Design for a Data Science Project"
+author: "Vara Prasad Gudi"
+date: "12/10/2024"
+format:
+  html:
+    df-print: paged
+    embed-resources: true
+    self-contained-math: true
+---
+
+**Make sure you change the author's name in the above YAML header.**
+
+## Setup
+
+```{r loading-packages}
+library(tidyr)
+library(dplyr)
+library(readxl)
+library(haven)
+library(stringr) 
+library(ggplot2) 
+library(labelled) # helpful in part 2
+```
+
+## Challenge Overview
+
+In this challenge, you will apply knowledge about research design and other topics covered in lectures so far to several datasets of your choice.
+
+There will be coding components and writing components. Please read the instructions for each part and complete the assignment.
+
+## Part 1. Research and Hypotheses (5 pts)
+
+Choose one of the following datasets to do a simple practice of research design and hypothesis testing:
+
+Dataset 1: The General Social Survey (2022). You can find more information about this dataset at <https://gss.norc.org/About-The-GSS>. A codebook explaining the definition of each variable and column is also included.
+
+Dataset 2: The COVID-19 Report for the 2024-2025 respiratory season in Massachusetts. The datasets are stored in an Excel file in multiple sheets. You can find more information about this dataset in the "Introduction", "Definition", "Notes", and "Data Dictionary" tabs in the Excel file.
+
+1.  **Read the data you choose in R. (0.5 pts)**
+
+    For GSS, there is only one data sheet (.dta).
+
+    For the MA Covid-19 reports, you can choose **one of the four datasheets (tabs in Excel)** to read ("Weekly Cases and Deaths", "Case and Death Demographics", "County Data", and "City and Town Data").
+
+```{r}
+weeklycases <- read_excel("./data/covid-19-dashboard-2024-2025-11-14-24.xlsx", 
+                          sheet = "Weekly Cases and Deaths")
+```
+
+```{r}
+head(weeklycases)
+```
+
+2.  **Answer the following questions about your chosen dataset.**
+
+    \(1\) what is the structure (dimension) of the data? **(0.25 pts)**
+
+    ```{r}
+    dim(weeklycases)
+    ```
+
+    -   #rows = 247
+
+    -   #columns = 10
+
+    (2) what is the unit of observation/unit of analysis? **(0.25 pts)**
+
+    -   The unit of observation is: [**each week**]{.underline}
+
+3.  **Read the overview introduction, codebook (for the GSS data), and other related information about the data (for the Covid-19 data). If you browse the the data loaded in R, it seems like there are many different questions this data can answer. Based on the class lecture about "good research questions", please propose ONE research question that can be answered using this data. (0.5 pts)**
+
+    -   What is the trend of confirmed and probable covid cases in the year 2024?
+
+4.  **Based on the research question you proposed above, propose a hypothesis about a possible relationship between two items. (0.5 pts)**
+
+    -   The number of confirmed and probable cases have been decreasing steadily from 07/01/2024 to 09/11/2024
+
+5.  **Based on the hypothesis proposed, please select variables/columns in the data to measure the corresponding concepts in the hypothesis statement. You should select at least one variable/column to measure each concept.**
+
+    **You should also specify which variables/columns you choose and explain why they are the proper ones to measure the concepts. (1 pt)**
+
+    **Instruction:** Don't just write, "They are reliable and valid". Instead, you should discuss more why they are reliable (can consistently produce the same results regardless of the same results regardless different times and contexts) and valid (why it is better than other possible or alternative variables/columns). You can find the concepts of validity and reliability in the Week 12 Slides. There are also more in-depth introductions online, such as [this page](http://media.acc.qcc.cuny.edu/faculty/volchok/Measurement_Volchok/Measurement_Volchok6.html).
+
+    **Variables selected:** Week Start Date, Confirmed and Probable Cases
+
+    -   **Reliability**:
+
+        The data is reliable because it is static and consistently recorded over time. This ensures that when deterministic procedures are applied, the results remain consistent across different contexts and timeframes. For example, using the same calculation method on the data will always yield identical outcomes, which is a hallmark of reliability.
+
+    -   **Validity**:
+
+        The selected variables are the most appropriate for measuring the trend of COVID-19 cases in 2024. The "Confirmed and Probable Cases" column directly reflects the core concept being studied, making it the most relevant measure. Unlike alternative variables, such as "Total Tests Conducted" or "Hospitalizations," this column precisely captures the number of cases needed to evaluate the trend. The "Week Start Date" provides a temporal reference to observe changes over time, ensuring the analysis is valid for identifying trends within the desired timeframe.
+
+6.  **Write code to conduct descriptive statistics for the two variables/columns you selected above. You should present the following information in your descriptive statistics: range, average, standard deviation, the number of NAs, and the number of unique values. (0.5 pts)**
+
+    ```{r}
+    weeklycases |> 
+      summarise(range=range(weeklycases$`Confirmed and probable cases`),
+                average=mean(weeklycases$`Confirmed and probable cases`),
+                standard_deviation=sd(weeklycases$`Confirmed and probable cases`),
+                `Number of NAs`=sum(is.na(weeklycases$`Confirmed and probable cases`)),
+                `Number of Unique values`=n_distinct(weeklycases$`Confirmed and probable cases`)
+                )
+    ```
+
+    -   The Start Date column represents the observation unit, so calculating descriptive statistics on this variable would not be meaningful.
+
+7.  **Plot one univariate graph for each of the variables/columns. (0.5 pts)**
+
+    ```{r}
+    ggplot(weeklycases, aes(`Confirmed and probable cases`)) +
+      geom_histogram(aes(y=..density..))+
+      geom_density(alpha = 0.3, fill = "red", color = "darkred", size = 1)+
+      labs(title = "Distribution of Confirmed and probable cases per week", 
+           x="Confirmed and probable cases per week", y="Density")+
+      theme_minimal()
+    ```
+
+8.  **Finally, plot a graph to visually test the hypothesis you propose. Based on the visual evidence, do you see any potential association between the two variables? (1 pt)**
+
+    ```{r}
+    data_mod <- weeklycases |>
+      mutate(
+        week_start_date=as.Date(`Week Start Date`)
+      ) |>
+      filter(week_start_date >= as.Date("2024-01-01") & 
+               week_start_date < as.Date("2024-12-31"))
+
+    ggplot(data_mod, aes(x=week_start_date, y=`Confirmed and probable cases`))+
+      geom_point(size=0.5)+
+      geom_line()+
+      labs(title="Confirmed and Probable cases in 2024", x="Week")+
+      theme(axis.text.x = element_text(angle=90, hjust=1))
+    ```
+
+-   **My analysis based on the above graph for 2024:**
+
+    The hypothesis that "the number of confirmed and probable cases has been steadily decreasing from 07/01/2024 to 09/11/2024" is [**partially incorrect**]{.underline}.
+
+-   The graph indicates a decreasing trend initially in the first half of the year. However, from early-June onward, the trend shows an increase in cases, peaking around August, followed by a sharp decline starting in late September. This suggests a fluctuating pattern during the stated period rather than a steady decrease.
+
+-   Hence, the observed trend [**does not fully support the hypothesis**]{.underline}, as the number of cases increased for a significant portion of the specified timeframe before declining.
+
+## Part 2. Reviewing the findings of a graph by examining the raw data. (5 pts)
+
+This part of the challenge is based on a scenario. Suppose you are a data scientist who provides consulting services to the government. One day, your client asks you to investigate an article by the New York Times that reported on some research on people's confidence in the institutions of democracy. It had been published in an academic journal. The headline in the Times ran, ["How Stable Are Democracies? 'Warning Signs Are Flashing Red'" (Taub, 2016)](https://www.nytimes.com/2016/11/29/world/americas/western-liberal-democracy.html). The graph accompanying the article, as shown below, plots people's responses to a question in the World Value Survey (WVS) (V162-Importance of democracy). The graph certainly seemed to show an alarming decline. The graph was widely circulated on social media. It's an elegant small-multiple that, in addition to the point ranges it identifies, also shows an error range (labeled as such for people who might not know what it is), and the story told across the panels for each country is pretty consistent.
+
+![](https://socviz.co/assets/ch-01-democracy-nyt-version.png){fig-align="center" width="1000"}
+
+1.  **Please briefly describe the major findings of this graph. (0.5 pts)**
+
+    -   The graph shows that the percentage of people who consider it essential to live in a democracy decreases with younger generations across all six countries.
+
+    -   This generational decline is consistent in Sweden, Australia, the Netherlands, the United States, New Zealand, and Britain.
+
+    -   Among these countries, **the United States exhibits the largest gap** between older and younger generations in their views on the importance of democracy, while the **Netherlands shows the smallest** difference in opinion between age groups.
+
+2.  **Your client is concerned about the findings of this graph.** On the one hand, they are surprised and worried by the "crisis of democracy" presented in this graph. **On the other hand, they also doubt the argument of the NYT article and the validity of the findings of this graph.** Before deciding on making any policy to respond, they ask you to conduct some additional research with the original data.
+
+    \(1\) Read the provided WVS datasets (WVS5/WVS6). The datasets are large, so you should subset them before analysis. **Please keep only the following columns: respondents' country (`V2`), year of birth (`V236`/`V241`), and the question for plotting (`V162`/`V140`)** (yes, some of the variables have different names in the two waves). You also need to filter only the observations in the six countries mentioned above: Sweden, Australia, Netherlands, United States, New Zealand, and Britain/United Kingdom. Row bind the two data sets together. Your combined data should have three columns.**(1 pt)**
+
+    Note: all the variable information, including those that are measured categorically, are represented by numbers. You must check out the WVS5/WVS6 codebooks to identify what the numerical values mean (especially for V2-country, see p57 of the WVS5 codebook and p64 of the WVS6 codebook).
+
+    ```{r}
+    wvs5_data <- readr::read_rds("./data/WVS5.rds")
+    wvs6_data <- readr::read_rds("./data/WVS6.rds")
+
+    wvs5_sub <- wvs5_data |> select("V2", "V236", "V162")
+    wvs6_sub <- wvs6_data |> select("V2", "V241", "V140")
+
+    # Check column names
+    colnames(wvs5_sub)  # Verify names in wvs5_sub
+    colnames(wvs6_sub)  # Verify names in wvs6_sub
+
+
+    # Standardize data types of 'country', 'yob', and 'question'
+
+    wvs5 <- wvs5_sub |>
+      rename(country = V2, yob = V236, question = V162) |> # Rename columns
+      mutate(
+        country = as.integer(country), # Convert labelled to integer via as_factor
+        yob = as.integer(yob),
+        question = as.integer(question)
+      )
+
+    # Fix column types for wvs6
+    wvs6 <- wvs6_sub |>
+      rename(country = V2, yob = V241, question = V140) |> # Rename columns
+      mutate(
+        country = as.integer(country), # Convert labelled to integer via as_factor
+        yob = as.integer(yob),
+        question = as.integer(question)
+      )
+
+    # Sweden, Australia, Netherlands, United States, New Zealand, and Britain/United Kingdom 
+    # (based on code - label PP002A Country/regions [with split ups])
+    # In WVS6 Handbook, Netherlands and Britian doesn't have codes. So reusing same what is available for WVS5
+
+    # 752, 36, 528, 840, 554, 826
+
+    desired_countries_list <- c(752, 36, 528, 840, 554, 826)
+    wvs5 <- wvs5 |> filter(country %in% desired_countries_list)
+    wvs6 <- wvs6 |> filter(country %in% desired_countries_list)
+    ```
+
+    ```{r}
+    head(wvs5)
+    ```
+
+    ```{r}
+    head(wvs6)
+    ```
+
+    ```{r}
+    # Combine the datasets
+    combined_wvs <- bind_rows(wvs5, wvs6)
+
+    # View the first few rows
+    head(combined_wvs)
+    ```
+
+    \(2\) Calculate descriptive statistics for the three variables. You can plot univariate graphs as we did in Challenge 4 or apply the summary statistics function as in Challenge 3. You can do either approach, you do not have to do both. **(1 pt）**
+
+    ```{r}
+    sum_stat <- function(x, y){
+
+      stat <- tibble(
+        range=range(y, na.rm = T),
+        mean=mean(y, na.rm = T),
+        sd=sd(y,na.rm=T),
+        na = sum(x < 0),
+        unique = length(unique(y))
+      )
+      return(stat)
+      }
+    ```
+
+    ```{r}
+    combined_wvs <- combined_wvs |>
+      mutate(
+        countries=as.numeric(country),
+        countries= recode(countries,
+          "752" = "Sweden",
+           "36"  = "Australia",
+           "528" = "Netherland",
+           "840" = "UnitedStates",
+            "554" = "New Zealand",
+           "826" = "UnitedKingdom",
+           .default = "Australia")
+        )
+    ```
+
+    ```{r}
+    # need to observe if negative values are NA s
+    # bar plot for V2
+    ggplot(combined_wvs , aes(countries)) +
+      geom_bar(fill = "skyblue", color = "blue", alpha = 0.8)+
+      labs(title = "No. of observations per Country (V2)", y="No. of observations")+
+      theme_minimal()
+    ```
+
+    ```{r}
+    # distribution for year of birth
+    ggplot(combined_wvs |> filter(yob >=0), aes(yob)) +
+      geom_histogram(aes(y=..density..))+
+      geom_density(alpha = 0.3, fill = "lightblue", color = "blue")+
+      labs(title = "Distribution of Observations for Born years", x="Born year", y="Density")+
+      theme_minimal()
+    ```
+
+    ```{r}
+    # quick hack to remove NA s
+    # negative number is NA
+    sum_stat(combined_wvs$question, 
+             (combined_wvs |> filter(question >=0))$question) 
+    ```
+
+    \(3\) (Optional) Please replicate the graph of the NYT article.
+
+    ```{r}
+    #type your code here
+    ```
+
+    \(4\) Now, please plot a graph to show the relationship between the decades of birth (x-axis) and the average level of the response scores to the question "importance of democracy" (y-axis) for each of the six countries. You can use `facet_grid()` or `facet_wrap()` to combine multiple graphs into a set of panels. **(1.5 pts)**
+
+    ```{r}
+    wvs_plot <- combined_wvs |> 
+      filter(country %in% c(752, 36, 528, 840, 554, 826)) |>
+      mutate(
+        Decade_of_Birth = yob %/% 10 * 10,
+        dem_importance = as.numeric(question),
+        countries = recode(as.character(country),  # Recode before grouping
+          "752" = "Sweden",
+          "36"  = "Australia",
+          "528" = "Netherland",
+          "840" = "United States",
+          "554" = "New Zealand",
+          "826" = "United Kingdom"
+        )
+      )
+
+    # Group, summarize, and plot
+    wvs_plot |> 
+      group_by(countries, Decade_of_Birth) |> 
+      summarise(Average = mean(dem_importance, na.rm = TRUE), .groups = "drop") |> 
+      ggplot(aes(x = Decade_of_Birth, y = Average)) +
+      geom_smooth(se = FALSE, color = "darkgreen") +  # Smooth line
+      geom_point(size = 2) +  # Points for data
+      scale_x_continuous(limits = c(1930, 1980)) +  # Restrict to relevant decades
+      labs(
+        x = "Decade",
+        y = "Average Score",
+        title = "Average score of people who say it is important to live in a democracy"
+      ) +
+      theme_minimal() +
+      theme(
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)
+      ) +
+      facet_wrap(~ countries, scales = "free_y")  # Facet by country with free y-scales
+    ```
+
+3.  **Describe what you find from the graph you made above. Compared to the graph on NYT, what's in common, or what's different? Please type your answer below. (0.5 pts)**
+
+    **Comparison of Findings:**
+
+    **Commonality:**\
+    Both graphs indicate that younger generations generally place less importance on the essentiality of democracy, highlighting a generational decline in democratic values.
+
+    **Differences:**
+
+    1.  **Representation of Data:**
+        -   In the graph above, the average score given by individuals from different birth decades is plotted, reflecting their overall sentiment towards democracy.
+        -   In the NYT graph, the data represents the percentage of people from each decade who explicitly consider living in a democracy as essential.
+    2.  **Patterns Across Countries:**
+        -   For some countries, like the United States and the United Kingdom or Australia, the trend appears similar in both graphs, with a significant generational decline in the importance of democracy.
+        -   However, in countries like Sweden and New Zealand, the decline in the above graph is less pronounced compared to the NYT graph, suggesting that the magnitude of generational differences might vary based on how the data is visualized or aggregated.
+
+4.  **Your client wants to hear your conclusion. Do you agree with the argument presented by the graph and the NYT article? Should we really worry about the decline? This is an opinion-based question. Please type your answer below. (0.5 pts)**
+
+    **Conclusion:**\
+    The graph in the NYT article appears to have set a very strict threshold, likely considering only those who rated democracy as a 10 on the importance scale as people who view it as "essential." This approach may exclude individuals who still value democracy but did not provide the maximum score, which could be misleading.
+
+    In contrast, the graph above, which considers the average scores across generations, shows that the ratings are consistently above 5. This indicates that the majority of people, even in younger generations, still believe that democracy is important. Therefore, while the NYT graph highlights a decline, it may overstate the concern by oversimplifying the data.
+
+    While the generational decline in valuing democracy is worth monitoring, the data from the above graph suggests that the situation may not be as dire as portrayed. The majority of individuals, regardless of age, still view democracy as essential, and the NYT article might be a case of framing the data to emphasize concern.

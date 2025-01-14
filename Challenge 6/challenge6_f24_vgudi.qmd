@@ -1,0 +1,116 @@
+---
+title: "Challenge 6: Basic Principles of Data-Driven Story-telling"
+author: "Vara Prasad Gudi"
+date: "12/15/2024"
+format:
+  html:
+    df-print: paged
+    embed-resources: true
+    self-contained-math: true
+---
+
+**Make sure you change the author's name in the above YAML header.**
+
+## Challenge Overview
+
+In this challenge, we will mainly apply the principles we learned from Jane Miller's book in practice. You will review multiple examples of data description and presentation in text, table/number, and charts/figures. Please read the instructions for each part and complete your challenges.
+
+**For all the screenshots, images, or tables mentioned in the questions, please see the challenge6_f24_instructions.html file. You don't need to include any of these items in your rendered challenge file.**
+
+## Part 1. Simple Applications
+
+1.  **Recall Jane Miller's Ws mentioned in Chapter #2. One of the W's (Who, What, When, and Where, Why) is missing from each of the following table descriptions. Rewrite each sentence to include that information. (1 pt)**
+
+    a.  "Germany did the best at the 2002 Winter Olympics, with 35 medals, compared to 34 for the United States, 24 for Norway, and 17 for Canada."
+
+        -   In Which category of medals did Germany do better? gold? silver? bronze? or total?
+        -   The missing "What" should specify the type of medal (or the 'total' column).
+        -   Rewritten Sentence: "Germany won 35 total medals (combining Gold, Silver, and Bronze medals), which is the most, at the 2002 Winter Olympics, compared to 34 for the United States, 24 for Norway, and 17 for Canada."
+
+    b.  "Gold, silver, and bronze medals each accounted for about one-third of the medal total."
+
+        -   What is the total medal count?
+        -   Better statement: "In the 2002 Winter Olympics, Gold (10), silver (13), and bronze (11) medals each accounted for about one-third of the medal total (34) won by the United States."
+
+    c.  "At the 2002 Winter Olympics, the United States won more medals than all other countries, followed by Canada, Germany, and Norway."
+
+        -   What/ Which category of medals did the United States win the most?
+        -   Rewritten Sentence: "At the 2002 Winter Olympics, the United States won more bronze medals (11) than all other countries, followed by Canada (8), Germany (7), and Norway (6)."
+
+2.  **For each of the following situations, specify whether you would use prose of text, a table of numbers, or a particular type of chart/figure. Explain why you chose this way to present the data. (2 pt)**
+
+    a.  Statistics on five types of air pollutants in the 10 largest US cities for a government report
+        -   a table of numbers, as we are supposed to represent 10x5=50 numbers table would be easy
+    b.  Trends in the value of three stock market indices over one year for a web page
+        -   a line plot, 3 line plots in the same graph or different (great source for time series data)
+    c.  Notification to other employees in your corporation of a change in shipping fees
+        -   prose of text, like a memo or a table with comparison of shipping fees
+    d.  Distribution of voter preferences for grade-level composition of a new middle school (grades 5--8, grades 6--8, or grades 6--9) for a presentation at a local school board meeting
+        -   A stacked bar chart would visually represent the proportion of votes for each grade-level composition option
+    e.  National estimates of the number of uninsured among part-time and full-time workers for an introductory section of an article analyzing effects of employment on insurance coverage in New York City
+        -   [**Prose**]{.underline} (a few sentences) would be the most appropriate format for presenting this information. Since it is [intended for the introduction section of an article]{.underline}, the purpose is to [provide a brief summary or description]{.underline}. Typically, introduction sections focus on setting the context and framing the topic, relying on text to convey key points concisely rather than including detailed tables or visual content.
+
+3.  **Read the sentences below. What additional information would someone need in order to answer the associated question? (1 pt)**
+
+    a.  "Brand X costs twice as much as Brand Q. Can I afford Brand X?"
+        -   Cost of Brand Q is needed.
+    b.  "My uncle is 6'6" tall? Will he fit in my new car?"
+        -   Height of the car is required.
+    c.  "New Diet Limelite has 25% fewer calories than Diet Fizzjuice. How much faster will I lose weight on Diet Limelite?"
+        -   Calorie count of Diet Fizzjuice is needed.
+    d.  "It has been above 25 degrees every day. We're really having a warm month, aren't we?"
+        -   Temperature scale details are required (Celsius or Fahrenheit)
+
+4.  **Indicate whether each of the following sentences correctly reflects table 4B. If not, rewrite the sentence so that it is correct. Check both the correctness and completeness of these sentences. (2 pt)**
+
+    Note: According to [Wikipedia](https://en.wikipedia.org/wiki/Voter_turnout), " In political science, voter turnout is the participation rate (often defined as those who cast a ballot) of a given election. This is typically the percentage of registered, eligible, or all voting-age people."
+
+    a.  Between 1964 and 1996, there was a steady decline in voter participation.
+        -   Incorrect and Incomplete
+        -   Between 1964 and 1996, there was decline in voter participation of Registered Voters from 95.8% to 63.4% with exception in 1992 (78.2% - spike).
+    b.  Voter turnout was better in 1996 (63.4%) than in 1964 (61.9%).
+        -   Incorrect and Incomplete
+        -   Voter turnout for Registered Voters was better in 1964 (95.8%) than in 1996 (63.4%).
+    c.  The majority of all registered voters participated in the 1964 US presidential election.
+        -   Correct but Incomplete because - missing numbers
+        -   The majority of all registered voters (95.8%) participated in the 1964 US presidential election
+    d.  The best year for voter turnout was 1992, with 104,600 people voting.
+        -   Incorrect and Incomplete
+        -   The best year for voter turnout of Registered Voters was 1964, with 70,6445(95.8%) people voting.
+    e.  A higher percentage of the voting-age population was registered to vote in 1996 than in 1964.
+        -   Correct but Incomplete (missing numbers)
+        -   A higher percentage of the voting-age population was registered to vote in 1996(74.40%) than in 1964(64.61%).
+
+5.  **Identify terms that need to be defined or restated for a non-technical audience without much knowledge about the topic or statistical method. You don't need to explain these terms (you don't need to know any of the statistical methods mentioned).** **Just identify them. (1 pt)**
+
+    a\. "According to the latest study based on the [VDem Dataset](https://v-dem.net/data/the-v-dem-dataset/), the average Rule of Law score is statistically higher in democratic countries than non-democratic countries based on a t-test (p = 0.01)."
+
+    -   t-test (p = 0.01), Rule of Law score, VDem Dataset (a brief description about the data)
+
+    b\. " According to the logistic regression results in the screenshot below, we can see a positive correlation between household income and the vote choice for G.W. Bush, with a positive coefficient (log-odd = 0.33). ”
+
+    -   logistic regression, correlation, coefficient (log-odd = 0.33)
+
+## Part 2. Practical Applications
+
+1.  **Suppose you work as a data analyst in the music-producing industry. One day, you get a data report that studies the popularity of different genres of music. The following scatter plot is presented to you. There is no text description for either this table or the data. (1.5 pts)**
+
+    \(1\) What information can you describe or summarize based on the current graph? (1 pt) (0.5 pts)
+
+    -   The graph shows that Variable_1 is an ordinal variable, with values predominantly concentrated on the left (between 0 and 5) rather than the right (5 to 10), indicating a left-skewed distribution.
+
+    \(2\) Thinking of the principles we learned in the week of visualization customization and Jane Miller's principles. What additional information (Please describe at least three things \[at least one thing that is NOT about graph customization, such as title, color, label, etc.\] that you consider adding to this table so that it can convey meaningful information. (1 point)
+
+    -   To enhance the table's clarity and effectiveness, I would add a descriptive title, clear labels, and a legend to specify the relationship between *pop* and *Variable_1*. Additionally, including both the direction and magnitude of the association between variables would improve interpretability. Applying Jane Miller’s GEE principle, I would describe the general trend with specific examples and exceptions, and ensure units of measurement are provided for each label to convey precise information.
+
+    (For your reference, this is the original source of the dataset: <https://www.kaggle.com/datasets/leonardopena/top-spotify-songs-from-20102019-by-year>)
+
+2.  **Two articles on scientific studies talk about the "risks." Please read the titles and quotes from these two articles and answer the following two questions. (1.5)**
+
+    \(1\) Given the information provided, in which case is there a greater "risk": the Pancreatic Cancer case or the Diabetes case? (0.5 pts)
+
+    -   The information provided is insufficient to determine which case presents a greater risk, as there are no common comparison metrics available for a meaningful evaluation.
+
+    \(2\) Think of Jane Miller's principles. What additional information would you need to know to compare the "risk" in the two cases? (1 pt)
+
+    -   To effectively compare the "risk" in both cases, we would need baseline risk levels for each condition and the degree of increased risk associated with each case. This would allow for a clear, standardized comparison in line with Jane Miller’s principles.

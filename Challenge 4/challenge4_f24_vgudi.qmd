@@ -1,0 +1,581 @@
+---
+title: "Challenge 4: Intro to Visulization: Univariate and Multivariate Graphs"
+author: "Vara Prasad Gudi"
+date: "11/20/2024"
+format:
+  html:
+    page-layout: full
+    df-print: paged
+    embed-resources: true
+    self-contained-math: true
+---
+
+```{=html}
+<style>
+body {
+    max-width: 100%; /* Set content width to 75% */
+    margin: 0 auto; /* Center the content */
+}
+pre, code {
+    overflow: auto; /* Ensure code blocks are scrollable if necessary */
+}
+</style>
+```
+
+------------------------------------------------------------------------
+
+**Make sure you change the author's name and add the data in the above YAML header.**
+
+**Make sure that you are properly labeling your plots axes and legends, using colorblind-friendly palettes, and providing alt-text for all plots. You will lose points if you do not.**
+
+## Setup
+
+If you have not installed the following packages, please install them before loading them.
+
+```{r }
+#| message: false
+#| warning: false
+library(tidyverse)
+library(readxl)
+library(dplyr)
+library(haven)
+library(stringr)
+library(ggplot2)
+library(haven)
+```
+
+## Challenge Overview
+
+In this challenge, we will practice with the data we worked on in the previous challenges and the data you choose to do some simple data visualizations using the `ggplot2` package.
+
+There will be coding components and writing components. Please read the instructions for each part and complete your challenges.
+
+## Datasets
+
+-   Part 1 the ESS_Polity Data (created in Challenge 3) ⭐⭐
+-   Part 2: the Australia Data (from Challenge 2) ⭐⭐
+-   Part 3: see \[Part 3. Practice plotting with a dataset of your choice\].
+
+For free data sources online, see [Appendix: sources for data to be used in Part 3].
+
+Find the `_data` folder, then read the datasets using the correct R command.
+
+## Part 1. Univariate and Multivariate Graphs (4.25 pts)
+
+We have been working with these two data sets in the previous three challenges. Suppose we have a research project that studies European citizens' social behaviors and public opinions, and we are interested in how the countries that respondents live in influence their behavior and opinion. In this challenge, let's work with the combined dataset *ESS_Polity* and create some visualizations.
+
+1.  **Read the combined data you created last time. (0 pts)**
+
+```{r}
+ess_polity <- read_csv('./data/ESS_polity.csv', show_col_types = FALSE)
+
+head(ess_polity)
+```
+
+```{r}
+dim(ess_polity)
+```
+
+2.  **Suppose we are interested in the central tendencies and distributions of the following variables. At the individual level:** `age`, `male`, `edu`, `income_10`, and `vote`. **At the country level**: `democ`.
+
+    \(1\) Recode the `vote` column: if the value is 1, recode it as 1; if the value is 2, recode it as 0; if the value is 3, recode it as NA. **Make sure to include a sanity check for the recoded data. (0.25 pts)**
+
+    ```{r}
+
+    table(ess_polity$vote, useNA="ifany")
+    ```
+
+    ```{r}
+    ep_modified <- ess_polity |> 
+      mutate(vote = 
+               case_when(
+                 vote == 1 ~ 1,
+                 vote == 2 ~ 0,
+                 vote == 3 ~ NA
+                 )
+             )
+    # Sanity Check: 1
+    table(ep_modified$vote, useNA="ifany")
+    ```
+
+    ```{r}
+    # Sanity Check: 2
+    head(ep_modified |> select(idno, vote))
+    ```
+
+    \(2\) For each of the five variables (`age`, `edu`, `income_10`, `vote`, and `democ`), please choose an appropriate type of univariate graph to plot the central tendencies and distribution of the variables. Explain why you choose this type of graph to present a particular variable (for example: "I use a histogram to plot `age` because it is a continuous numeric variable"). **(2.5 pts)**
+
+    **(Note: You should use at least two types of univariate graphs covered in the lecture.)**
+
+    ```{r}
+    # 1. Age: Create a histogram plot along with a density plot for a smoother curve.
+    # Reason: Age is a numerical and continuous variable, and plotting it using a histogram 
+    # can provide better insights into the distribution of this univariate column.
+
+    # Generate a histogram with a density plot for Age
+    age_plot <- ggplot(ep_modified, aes(age)) +
+      # Improved colors
+      geom_histogram(bins = 30, aes(y = ..density..), fill = "steelblue", 
+                     color = "black", alpha = 0.7) +
+      # Density plot with distinct color
+      geom_density(alpha = 0.3, fill = "orange") + 
+      labs(
+        # Descriptive title
+        title = "Distribution of Respondents' Age",  
+        x = "Age", # Clear x-axis label
+        y = "Count",  # Clear y-axis label
+        caption = "The histogram shows the age distribution with 
+        an overlaid density curve for smooth trends." # Interpretation summary
+      ) + 
+      # Minimal theme with larger text for readability
+      theme_minimal(base_size = 14) +  
+      theme(
+        # Center-aligned bold title
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"), 
+        # Center-aligned caption
+        plot.caption = element_text(hjust = 0.5, size = 10)  
+      )
+
+    # Print the plot
+    print(age_plot)
+
+    ```
+
+    ```{r}
+    # 2. edu: Use a bar plot.
+    # Reason: Since the 'Education' variable has only four unique values, 
+    # a bar plot effectively conveys the frequency or proportion of each value in a clear and visually intuitive way
+
+    # Bar plot for Education levels
+    ggplot(ep_modified, aes(edu)) + 
+      geom_bar(fill = "steelblue", color = "black", alpha = 0.8) +  # Added colors and transparency for better visibility
+      labs(
+        title = "Distribution of Respondents' Level of Education",  # Descriptive title
+        x = "Level of Education",  # Updated x-axis label
+        y = "Count",  # Updated y-axis label
+        caption = "This bar plot illustrates the frequency of each education level in the dataset."  # Caption for interpretation
+      ) + 
+      theme_minimal(base_size = 14) +  # Keep minimal theme with enhanced text size for readability
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Centered and bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Centered caption
+      )
+    ```
+
+    ```{r}
+    # 3. income_10: Use a bar plot.
+    # Reason: Although 'Income' is numerical, it has only 10 unique values. 
+    # A bar plot effectively conveys the frequency or proportion of each unique value.
+    # Alternatively, plotting a histogram with 10 bins would produce a similar visualization.
+
+    # Bar plot for income_10
+    ggplot(ep_modified, aes(income_10)) + 
+      geom_bar(fill = "dodgerblue", color = "black", alpha = 0.8) +  # Added colors for better visibility and accessibility
+      labs(
+        title = "Distribution of Respondents' Income Levels",  # Descriptive title
+        x = "Income Levels (10 Ordinal Groups)",  
+        y = "Count",  
+        caption = "The bar plot represents the frequency of individuals across 10 income categories."  # Caption for interpretation
+      ) + 
+      theme_minimal(base_size = 14) +  # Consistent minimal theme with larger text for readability
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Centered caption
+      )
+    ```
+
+    ```{r}
+    # 4. vote: Use a bar plot.
+    # Reason: The 'Vote' variable contains only two unique values (excluding null values). 
+    # A bar plot is an effective way to visualize the frequency of these two values, 0 and 1.
+
+    # Bar plot for Vote
+    ggplot(ep_modified, aes(vote)) + 
+      geom_bar(fill = "coral", color = "black", alpha = 0.8) +  # Added colors for better contrast
+      labs(
+        title = "Distribution of Respondents' Voter Turnout",  # Descriptive title
+        x = "Turnout",  # Clear x-axis label
+        y = "Count",  # Clear y-axis label
+        caption = "This bar plot shows the frequency distribution of individuals who voted (1) and did not vote (0)."  # Caption for interpretation
+      ) + 
+      theme_minimal(base_size = 14) +  # Minimal theme with larger text for readability
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Centered caption
+      )
+
+    ```
+
+    ```{r}
+    # 5. democ: Bar plot.
+    # Reason: Even though democ having numerical value, but it has only has 5 unique values, 
+    # and through bar plot we can effectively convey the frequency or proportion of each unique value
+
+    # Bar plot for Democ
+    ggplot(ep_modified, aes(democ)) + 
+      geom_bar(fill = "mediumseagreen", color = "black", alpha = 0.8) +  # Added colors for better visibility and contrast
+      labs(title = "Distribution of Country Democracy Score by Respondent",
+           x = "Democracy Score",
+           y = "Count of Respondents",
+        caption = "This bar plot displays the frequency distribution of 5 unique levels of democracy in the dataset."  # Caption for interpretation
+      ) + 
+      theme_minimal(base_size = 14) +  # Minimal theme with larger text for readability
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Centered caption
+      )
+    ```
+
+3.  **Suppose we want to test two hypotheses on the relationships of two pairs of variables**. **Please use the appropriate type of graphs we learned to visualize these two pairs of variables. Briefly describe the graph you plot, and answer: Does the graph we create from the data support the hypothesis?**
+
+    \(1\) Hypothesis #1: The more years of education (`edu`) a person completed, the higher income (`income_10`) they earn. **(0.75 pts)**
+
+    ```{r}
+    # We could also do a boxplot of income grouped by education level 
+    # ( because income has 10 values, we can treat it as quasi-numeric for plotting purposes).
+
+    # Box plot for edu vs income_10
+    ggplot(ep_modified |> filter(!is.na(edu)), aes(x = factor(edu), y = income_10)) +
+      geom_boxplot(fill = "lightblue", color = "black", alpha = 0.7) +  # Added colors for better contrast
+      labs(
+        x = "Education", y = "Income",
+           title = "Income Distribution by Levels of Education",
+        caption = "This box plot visualizes the distribution of income deciles across education levels."  # Caption for interpretation
+      ) +
+      theme_minimal(base_size = 14) +  # Minimal theme with enhanced text size for readability
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Center-aligned caption
+      )
+
+    ```
+
+    \(2\) Hypothesis #2: There is a gender disparity (`male`) in voting behavior (`vote`). (Either men are more likely to vote, or women are more likely to vote). **(0.75 pts)**
+
+    ```{r}
+    votes_by_gender <- ep_modified |> 
+      filter(!is.na(vote)) |>
+      select(male, vote) |>
+      group_by(male, vote) |>
+      summarise(count = n())
+    ```
+
+    ```{r}
+    # Both male and vote are binary variables in the data.
+    # A bar plot of some kind is the best choice to help answer this question.
+
+    ep_modified |> 
+      filter(!is.na(male),
+         !is.na(vote)) |>  # removing NAs
+      ggplot(aes(x = as.factor(male),
+             fill = as.factor(vote))) +
+      geom_bar(position = "fill") +
+      labs(x = "Male",
+       y = "Proportion",
+       fill = "Voted",
+       title = "Turnout by Male or Not") +
+      scale_color_viridis_d() +
+      theme_light()
+
+    ```
+
+    ```{r}
+    # Stacked bar plot for votes by gender
+    ggplot(votes_by_gender, aes(male, count, fill = vote)) + 
+      geom_bar(position = "fill", stat = "identity") + 
+      labs(
+        title = "Proportion of Votes by Gender",  # Added title
+        x = "Gender (0 = Female, 1 = Male)",  # X-axis label
+        y = "Proportion of Votes",  # Y-axis label
+        fill = "Voting Status",  # Legend label
+        caption = "This plot displays the proportion of votes by gender (Male = 1, Female = 0)."  # Caption for interpretation
+      ) +
+      theme_minimal(base_size = 14) +  # Minimal theme with enhanced text size for readability
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Center-aligned caption
+      )
+    ```
+
+## Part 2. Comparing between Partial and Whole, and Among Groups (2.25 pts)
+
+In this part, we will use the clean version of the Australian public opinion poll on Same-Sex Marriage to generate graphs and plots. **You may need to do data transformation or mutation to facilitate graphing.**
+
+1.  Read in data. **(0 pts)**
+
+    ```{r}
+    australian_data <- read_csv('./data/australian_data.csv', show_col_types = FALSE)
+    ```
+
+    ```{r}
+    head(australian_data)
+    ```
+
+2.  Use a barplot to graph the Australian data based on their responses: yes, no, illegible, and no response. The y-axis should be the count of responses, and each response should be represented by one individual bar (so there should be four bars). **(0.75 pts)**
+
+    (you can use either geom_bar() or geom_col())
+
+    ```{r}
+    # Summing up column values for responses
+    column_values <- australian_data |> 
+      select('Yes', 'No', 'Illegible', 'No Response') |> 
+      colSums(na.rm = TRUE)
+
+    responses <- data.frame(response = names(column_values), count = column_values)
+
+    # Bar plot for response counts
+    ggplot(responses, aes(x = response, y = count)) + 
+      geom_bar(stat = "identity", fill = "lightgreen") +  # Light green fill for bars
+      labs( title = "Votes in Australia on Same-Sex Marriage",
+        x = "Response",
+        y = "Count",
+        caption = "A Bar plot shows distribution of survey responses across four categories: Yes, No, Illegible, No Response."  # Caption for interpretation
+      ) +
+      theme_minimal(base_size = 14) +  # Minimal theme for clarity
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned title
+        plot.caption = element_text(hjust = 0.5, size = 10)  # Centered caption
+      )
+
+    ```
+
+    ```{r}
+    column_values
+    ```
+
+    ```{r}
+    # Processing the data for visualization
+    processed_data <- responses %>%
+      mutate(
+        response = as_factor(response),  # Convert response to factor
+        response = fct_relevel(response, "Yes", "No", "Illegible", "No Response")  # Reorder factor levels
+      ) %>%
+      group_by(response) %>%
+      summarise(Count = sum(count)) %>%  # Summarize counts for each response
+      ungroup() %>%
+      mutate(perc = Count / sum(Count))  # Calculate percentage
+
+    # Plotting the results
+    ggplot(processed_data, aes(x = response, y = perc)) +
+      geom_bar(stat = "identity", fill = "lightgreen") +
+      labs(
+        title = "Same-Sex Marriage in Australia Voting Results",
+        y = "Percent of Voters",
+        x = "Response"
+      ) +
+      scale_y_continuous(name= "Percent of Voters", label = scales::percent) +
+      geom_text(aes(label = formatC(Count,
+                                    format = "d",
+                                    big.mark = ",")),
+                size = 3, vjust = -.5) +
+      theme_minimal()
+    ```
+
+    The previous graph only highlights the differences in absolute amounts. Therefore, we will create a 100% stacked bar plot to display the proportion of each of the four responses as a percentage of the total responses.
+
+    ```{r}
+    total <- sum(responses$count)
+    responses$perc <- responses$count*100.0/total
+
+    # ggplot(responses, aes(x = "", y = perc, fill = response)) + geom_bar(stat = "identity", position = "fill")
+
+    # Proportional bar plot for responses
+    ggplot(responses, aes(x = "", y = perc, fill = response)) + 
+      geom_bar(stat = "identity", position = "fill") +  # Proportional bar plot
+      labs(
+        title = "Proportional Distribution of Survey Responses",  # Descriptive title
+        x = "",  # No x-axis label needed for a proportional plot
+        y = "Proportion",  # Y-axis label
+        fill = "Response Type",  # Legend label
+        caption = "This plot displays the proportional distribution of survey responses across response types."  # Caption for interpretation
+      ) +
+      theme_minimal(base_size = 14) +  # Minimal theme for clarity
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10)  # Centered caption
+      )
+    ```
+
+3.  Let's see if there's a relationship between Division and Response - that is, are certain divisions more likely to respond one way compared to other divisions? Again, we will use barplot(s) to present the visualization. What does your visualization tell you about the relationship between those two variables? **(1.5 pts)**
+
+    (you can use either geom_bar() or geom_col())
+
+    -   Divisions in the Australian Capital Territory have the highest percentage of "Yes" votes compared to other divisions.
+    -   Divisions in the Northern Territory have the lowest percentage of "Yes" votes compared to other divisions.
+    -   The other divisions do not show any noticeable differences among them.
+
+    ```{r}
+    long_data <- australian_data |>
+      pivot_longer(cols = c(`Yes`, `No`, `Illegible`, `No Response`), 
+                   names_to = "Response", 
+                   values_to = "count")
+
+    long_data <- long_data |>
+      group_by(Division, Response) |>
+      summarise(sum_value = sum(count))
+
+    ```
+
+    ```{r}
+    ggplot(long_data, aes(fill = Response, x = Division, y = sum_value)) + 
+    geom_col(position = "fill") +
+    labs(title = "Vote Percentages on Same-Sex Marriage by Division", 
+         x = NULL, 
+         y = "Proportion") +
+    # to avoid overlapping text in x-axis  
+    theme(axis.text.x=element_text(angle = 70, hjust = 1))  +
+    scale_fill_viridis_d()   
+    ```
+
+## Part 3. Practice plotting with a dataset of your choice (3.5 pts)
+
+In this part, you will choose data of your interests for graphing and plotting. This data can be tidy/ready-to-be-used or raw data that needs cleaning. If the data is very large (for example, more than 20 columns), you should definitely subset the data by selecting less than 10 variables of your interests to avoid taking too much room in your R memory.
+
+1.  Include a link to the data page (this page should include the introduction or description and the link to download this dataset). **(0.5 pts)\
+    Titanic Dataset from Kaggle:\
+    **<https://www.kaggle.com/datasets/yasserh/titanic-dataset?resource=download>
+
+2.  Read the data you choose and briefly answer the following questions. (Optional: you may need to subset, clean, and transform the data if necessary). **(0.5 pt)**
+
+    ```{r}
+    titanic_data <- read_csv('./data/Titanic-Dataset.csv', show_col_types = FALSE)
+    head(titanic_data)
+    ```
+
+    \(1\) What is the structure (dimension) of the data;
+
+    -   Rows = 891, Columns = 12
+
+    ```{r}
+    dim(titanic_data)
+    ```
+
+    \(2\) What is the unit of observation?
+
+    -   The unit of observation is passenger information, including ticket details and survival status.
+
+    \(3\) What does each column mean in this data?
+
+    -   PassengerId: Unique identifier for each passenger.
+
+    -   Survived: Survival status (1 = survived, 0 = did not survive).
+
+    -   Pclass: Ticket class (1st, 2nd, or 3rd class).
+
+    -   Name: Passenger's full name.
+
+    -   Sex: Gender of the passenger.
+
+    -   Age: Age in years.
+
+    -   SibSp: Number of siblings/spouses aboard with the passenger.
+
+    -   Parch: Number of parents/children aboard with the passenger.
+
+    -   Ticket: Passenger's ticket number.
+
+    -   Fare: Ticket price paid.
+
+    -   Cabin: Assigned cabin number (if known).
+
+    -   Embarked: Port of embarkation (C = Cherbourg, Q = Queenstown, S = Southampton).
+
+3.  Choose two columns/variables that you are interest in. Plot one univariate graph for *each* of the variables. **(1 pts)**
+
+    ```{r}
+    # Histogram for Age: Continuous Variable
+    ggplot(titanic_data, aes(Age)) + 
+      geom_histogram(bins = 30, aes(y = ..density..), alpha = 0.5, fill = "green", color = "black") +  # Added color for the histogram
+      geom_density(alpha = 0.2, fill = "red") +  # Density curve with better contrast
+      labs(
+        title = "Distribution of Age on Titanic",  # Descriptive title
+        x = "Age (in years)",  # Clear x-axis label
+        y = "Density",  # Updated y-axis label for clarity
+        caption = "This histogram shows the age distribution of Titanic passengers with an overlaid density curve."  # Caption for interpretation
+      ) + 
+      theme_minimal(base_size = 14) +  # Minimal theme for clarity
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Centered and bold title
+        plot.caption = element_text(hjust = 0.5, size = 10)  # Centered caption
+      )
+    ```
+
+    ```{r}
+    # Bar plot for SibSp: Number of Siblings/Spouses aboard
+    ggplot(titanic_data, aes(SibSp)) + 
+      geom_bar(fill = "cornflowerblue", color = "black", alpha = 0.8) +  # Added color and border for better visibility
+      labs(
+        title = "Number of Siblings/Spouses aboard (SibSp)",  # Descriptive title
+        x = "Number of Siblings/Spouses (0 to 8)",  # Clear x-axis label
+        y = "Frequency",  # Clear y-axis label
+        caption = "This bar plot shows the distribution of the number of siblings/spouses aboard the Titanic (0 to 8 unique values)."  # Caption for interpretation
+      ) +
+      theme_minimal(base_size = 14) +  # Minimal theme for clarity
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Centered and bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Centered caption
+        axis.text.x = element_text(angle = 0, hjust = 0.5)  # Ensure readable x-axis labels
+      )
+    ```
+
+4.  Choose a pair of variables that may be related and make a graph (scatter plot or barplot) using them. Based on the visual evidence, do you see any potential association between the two variables? **(1.5 pts)\
+    \
+    Hypothesis:** Females had a higher survival rate than males in the Titanic disaster.
+
+    ```{r}
+    survive_by_gender <- titanic_data |> 
+      filter(!is.na(Sex)) |>
+      select(Sex, Survived) |>
+      group_by(Sex, Survived) |>
+      summarise(count = n())
+    ```
+
+    ```{r}
+    survive_by_gender
+    ```
+
+    ```{r}
+
+    # Proportional bar plot for survival by gender
+    ggplot(survive_by_gender, aes(Sex, count, fill = Survived)) + 
+      geom_bar(position = "fill", stat = "identity", color = "black", alpha = 0.8) +  # Proportional bar plot with better contrast
+      labs(
+        title = "Survival Proportion by Gender",  # Descriptive title
+        x = "Gender (Sex)",  # Clear x-axis label
+        y = "Proportion",  # Clear y-axis label
+        fill = "Survival Status",  # Legend label
+        caption = "This plot shows the proportion of survival by gender, indicating the distribution of survivors and non-survivors for each gender."  # Caption for interpretation
+      ) +
+      theme_minimal(base_size = 14) +  # Minimal theme for clarity
+      theme(
+        plot.title = element_text(hjust = 0.5, size = 16, face = "bold"),  # Center-aligned bold title
+        plot.caption = element_text(hjust = 0.5, size = 10),  # Centered caption
+        axis.text.x = element_text(angle = 0, hjust = 0.5)  # Ensure x-axis labels are readable
+      )
+    ```
+
+    **Conclusion:** The hypothesis is confirmed; females had a higher survival rate than males in the Titanic disaster, as shown in the stacked bar plot above.
+
+## Appendix: sources for data to be used in Part 3
+
+**Here are some online sources and popular Online Dataset Hub:**
+
+1.  Many US governments (usually at the federal and state levels), bureaus, and departments have open data archives on their websites, allowing the public to access, download, and use them (for example the [CDC](https://www.cdc.gov/datastatistics/index.html)). Just use Google to search for them.
+
+2.  [**The Harvard Dataverse Repository**](https://dataverse.harvard.edu/) is a free data repository open to all researchers from any discipline, inside and outside the Harvard community, where you can share, archive, cite, access, and explore research data. Each individual Dataverse collection is a customizable collection of datasets (or a virtual repository) for organizing, managing, and showcasing datasets.
+
+3.  [**Inter-university Consortium for Political and Social Research (ICPSR)**](https://www.icpsr.umich.edu/web/pages/ICPSR/index.html) of the University of Michigan-Ann Arbor provides leadership and training in data access, curation, and methods of analysis for the social science research community.
+
+4.  [**TidyTuesday**](https://github.com/rfordatascience/tidytuesday) has many datasets expressly for the purpose of making data visualizations.
+
+5.  [**World Health Organization**](https://www.who.int/gho/database/en/)
+
+6.  [**The National Bureau of Economic Research**](https://data.nber.org/data/)
+
+7.  [**International Monetary Fund**](https://data.imf.org/?sk=388DFA60-1D26-4ADE-B505-A05A558D9A42&sId=1479329328660)
+
+8.  [**General Social Survey**](http://gss.norc.org/)
+
+9.  **UN: <https://data.un.org/>**
+
+10. [**OECD Data**](https://data.oecd.org/): economic and development data of the most developed countries in the world.

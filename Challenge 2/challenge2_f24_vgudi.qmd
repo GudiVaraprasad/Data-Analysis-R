@@ -1,0 +1,455 @@
+---
+title: "Challenge 2: Data Transformation, Pivoting, and Date-Time Data"
+author: "Vara Prasad Gudi"
+description: ""
+date: "10/02/2024"
+format: 
+  html: 
+    embed-resources: true
+    self-contained-math: true
+---
+
+**Make sure you change the author's name and the date.**
+
+## Setup
+
+If you have not installed the following packages, please install them before loading them.
+
+```{r load-packages}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(readxl)
+library(haven) #for loading other datafiles (SAS, STATA, SPSS, etc.)
+library(stringr) # installed, but not loaded with tidyverse
+library(lubridate) # installed, but not loaded with tidyverse
+```
+
+## Challenge Overview
+
+Challenge 2 builds on the lectures in week 3 and week 4, giving you a chance to continue to practice different data transformation skills. In addition, you will explore the data more by pivoting and working with date-time date.
+
+This challenge consists of coding components and writing components. Please read the instructions for each part and complete the assignment.
+
+## Datasets
+
+There are four datasets provided in this challenge. Please download the following dataset files from Canvas and save them to a folder within your project working directory (i.e.: "DACSS601_data"). If you don't have a folder to store the datasets, please create one.
+
+-   ESS_5.dta (Part 1) ⭐
+-   p5v2018.sav (Part 1)⭐
+-   australian_data.csv (Part 3)⭐
+-   FedFundsRate.csv (Part 4)⭐
+
+## Part 1. Depending on the data you chose in Part 2 of Challenge 1 (ESS_5 or Polity V), please use that data to complete the following tasks
+
+### **If you are using the ESS_5 Data:**
+
+1.  **Read in the dataset and keep the first 39 columns.**
+
+```{r}
+ess <- read_dta("./data/ESS_5.dta")
+ess_colnames <- colnames(ess)
+ess_39 <- ess |> select(ess_colnames[1:39])
+head(ess_39)
+```
+
+2.  **Conduct the following transformation for the data by using mutate() and other related functions :**
+
+    \(1\) Create a new column named `year_of_birth` using the information in the `age` column. (**Note**: Data collection for Wave 5 of the ESS took place in 2009 - 2010; for this question, assume the year of data collection is 2010.
+
+    ```{r}
+    ess_39 <- ess_39 |> 
+      mutate(
+        YearOfBirth = 2010 - age
+        )
+
+    # Displaying YearOfBirth column
+    head(select(ess_39, idno, age, YearOfBirth))
+    ```
+
+    \(2\) Create a new column named `adult` using the information in the `age` column.
+
+    ```{r}
+    ess_39 <- ess_39 |> 
+      mutate(adult = case_when(
+        age >= 18 ~ "yes",
+        age < 18 ~ "no"
+        )
+      )
+
+    # Displaying adult column
+    head(select(ess_39, idno, age, adult))
+    ```
+
+    \(3\) Recode the `commonlaw` column: if the value is 0, recode it as `"non-common-law"`; if the value is 1, recode it as `"common-law"`.
+
+    ```{r}
+    # recoding commonlaw column
+    ess_39 <- ess_39 |> 
+      mutate(commonlaw = recode(commonlaw, `0`= "non-common-law", `1` = "common-law"))
+    select(ess_39, commonlaw)
+    ```
+
+    \(4\) Recode the `vote` column: if the value is 3, recode it as 1; if the value is smaller than 3, recode it as 0. Make sure not to recode the NAs.
+
+    ```{r}
+    # recoding vote column
+    ess_39 <- ess_39 |> 
+      mutate(vote = case_when(
+        vote == 3 ~ 1,
+        vote < 3 ~ 0
+        )
+        )
+    select(ess_39, vote)
+    ```
+
+    \(5\) Move the column `year_of_birth`, `adult,` `commonlaw`, and `vote` right before the `essround` column (the 2nd column in order).
+
+    ```{r}
+    # rearranging the columns
+    ess_39 <- ess_39 |>
+      relocate(YearOfBirth, adult, commonlaw, vote, .before = essround)
+
+    # display top rows
+    head(ess_39)
+    ```
+
+    \(6\) Answer the question: What is the data type of the `commonlaw` column before and after recoding? And what is the data type of the `vote` column before and after recoding?
+
+    -   Before
+
+        -   vote: double
+
+        -   commonlaw: double
+
+    -   after
+
+        -   vote: double
+
+        -   commonlaw: character
+
+```{r}
+# ess is from original file, ess_39 is by modifying according to instructions
+before_dtypes <- ess |>
+  select(commonlaw, vote) |>
+  summarise_all(typeof)
+before_dtypes
+```
+
+```{r}
+# ess is from original file, ess_39 is by modifying according to instructions
+after_dtypes <- ess_39 |>
+  select(commonlaw, vote) |>
+  summarise_all(typeof)
+after_dtypes
+```
+
+### **If you are using the Polity V Data:**
+
+1.  **Read in the dataset and keep the first 11 columns.**
+
+```{r}
+#Type your code here
+```
+
+2.  **Conduct the following transformation for the data by using mutate() and other related functions :**
+
+    \(1\) Create a new column named `north_america` using the information in the `country` column. Note: "United States," "Mexico," or "Canada" are the countries in North America. In the new `north_america` column, if a country is one of the above three countries, it should be coded as 1, otherwise as 0.
+
+    \(2\) Recode the `democ` column: if the value is 10, recode it as `"Well-Functioning Democracy"`; if the value is greater than 0 and smaller than 10, recode it as `"Either-Autocracy-or-Democracy"`; if the value is 0, recode it as `"Non-democracy"`; if the value is one of the following negative integers (`-88`, `-77`, and `-66`), recode it as `"Special-Cases"`.
+
+    \(3\) Move the column `north_america` and `democ` right before the `year` column (the 6th column in order).
+
+    \(4\) Answer the question: What is the data type of the `north_america` column? What is the data type of the `democ` column before and after recoding?
+
+```{r}
+#Type your code here
+```
+
+## Part 2. Generate your own Data
+
+1.  **Generate an untidy data that includes 10 rows and 10 columns. In this dataset, column names are not names of variables but a value of a variable.**
+
+    \*Note: Please do not ask ChatGPT to generate a dataframe for you. I have already checked the possible questions and answers generated by AI.
+
+```{r}
+# Generating untidy data for student exam scores across different subjects
+untidy_scores_data <- tibble(
+  Student_Name = c("Gudi", "Venkata", "Naga", "Sai", "Vara", "Prasad", "Sharma", "Haritha", "Ambarisa", "Yavanashwa"),
+  `601` = sample(50:100, 10),
+  `602` = sample(50:100, 10),
+  `677` = sample(50:100, 10),
+  `520` = sample(50:100, 10),
+  `685` = sample(50:100, 10),
+  `674` = sample(50:100, 10),
+  `646` = sample(50:100, 10),
+  `682` = sample(50:100, 10),
+  `645` = sample(50:100, 10),
+  `532` = sample(50:100, 10)
+)
+
+# Display the untidy dataset
+untidy_scores_data
+```
+
+2.  **Use the correct pivot command to convert the data to tidy data.**
+
+```{r}
+# Use pivot_longer to convert wide data into tidy format
+tidy_scores_data <- untidy_scores_data |> pivot_longer(cols = -Student_Name, names_to = "Subject", values_to = "Score")
+
+# Display the tidy dataset
+tidy_scores_data
+```
+
+3.  **Generate an untidy data that includes 10 rows and 5 columns. In this dataset, an observation is scattered across multiple rows.**
+
+```{r}
+# Create untidy data where student attendance is scattered across multiple rows for each month
+untidy_attendance_data <- tibble(
+  Student_Name = c("Gudi", "Gudi", "Venkata", "Venkata", "Naga", "Naga", "Sai", "Sai", "Vara", "Vara"),
+  Month = c("January", "February", "January", "February", "January", "February", "January", "February", "January", "February"),
+  Subject = c("601", "601", "677", "677", "645", "645", "685", "685", "682", "682"),
+  Days_Attended = sample(10:20, 10),
+  Total_Days = 20
+)
+
+# Display the untidy attendance dataset
+untidy_attendance_data
+```
+
+3.  **Use the correct pivot command to convert the data to tidy data.**
+
+```{r}
+# Pivot the data to tidy format
+tidy_attendance_data <- untidy_attendance_data |> pivot_wider(names_from = c("Month", "Subject"), values_from = "Days_Attended")
+
+# Display the tidy attendance dataset
+tidy_attendance_data
+```
+
+## Part 3. The Australian Data
+
+This is another tabular data source published by the [Australian Bureau of Statistics](https://www.abs.gov.au/) that requires a decent amount of cleaning. In 2017, Australia conducted a postal survey to gauge citizens' opinions towards same sex marriage: "Should the law be changed to allow same-sex couples to marry?" All Australian citizens are required to vote in elections, so citizens could respond in one of four ways: vote yes, vote no, vote in an unclear way (illegible), or fail to vote. (See the "Explanatory Notes" sheet for more details.)
+
+The data have been cleaned for you and you can directly import it. We will come back to cleaning and processing the original "messy" data after we learn some string functions in the later weeks.
+
+1.  **Read in the `australian_data.csv` data set:**
+
+```{r}
+# loading the dataset
+australian_data <- read_csv('./data/australian_data.csv')
+
+# displaying few rows
+head(australian_data)
+```
+
+-   **Data Description: Please use the necessary commands and codes and briefly describe this data with a short writing paragraph answering the following questions.**
+
+    ```{r}
+    dim(australian_data)
+    ```
+
+    \(1\) What is the dimension of the data (# of rows and columns)?
+
+    -   Rows: 150
+
+    -   Columns : 6
+
+    \(2\) What do the rows and columns mean in this data?
+
+    -   Row: Each row summarizes the number of people in a district within a division in Australia who voted "Yes," "No," had an illegible vote, or did not vote in the same-sex marriage law survey.
+
+    -   Columns:
+
+        -   District: Name of the district in an Australian division
+
+        -   Division: Name of the division in Australia
+
+        -   Yes: Number of people who voted in favor of same-sex marriage from a district
+
+        -   No: Number of people who voted against same-sex marriage from a district
+
+        -   Illegible: Number of unclear or invalid votes from a district from a district
+
+        -   No Response: Number of people who did not vote from a district
+
+-   **Data Transformation: use necessary commands and codes and answer the following questions.**
+
+    \(1\) Reshape the dataset to longer format
+
+    ```{r}
+    australian_reshaped <- australian_data |>
+      pivot_longer(c("Yes", "No", "Illegible", "No Response"), names_to="Response", values_to="Count")
+    head(australian_reshaped)
+    ```
+
+    \(2\) How many districts and divisions are in the data?
+
+    -   Unique Districts: 150
+
+    -   Unique Divisions: 8
+
+    ```{r}
+    australian_reshaped |>  summarise("Unique Districts" = length(unique(District)), "Unique Divisions" = length(unique(Division)))
+    ```
+
+    \(3\) Use `mutate()` to create a new column `district_turnout_per`. This column should be the voting turnout in a given district, or the proportion of people cast votes (yes, no and illegible) in the total population of a district.
+
+    ```{r}
+    australian_data <- australian_data |> mutate("district_turnout_per" = (Yes + No + Illegible)*100/(Yes + No + Illegible + `No Response`))
+    head(select(australian_data, District, `district_turnout_per`))
+    ```
+
+    \(4\) please use `summarise()` to answer the following questions:
+
+    ```{r}
+    australian_data |> summarize("Support Count" = sum(Yes), "Oppose Count"=sum(No))
+    ```
+
+    -   In total, how many people support same-sex marriage in Australia, and how many people oppose it?
+
+        -   People supporting same-sex marriage: 7817247
+
+        -   People opposing same-sex marriage: 4873987
+
+    -   Which *district* has ***most people*** supporting the policy, and how many?\
+        Ans: **Canberra** (division) has the highest number of supporters for the policy, with [**89,590**]{.underline} people in favor.
+
+    ```{r}
+      australian_data |> arrange(desc(Yes))
+    ```
+
+    -   Which *division* has the highest approval rate (% of "yes" in the total casted votes)? And what is the average approval rate at the *division level?*
+
+        -   Hint: Do NOT take the average of the district approval rate. Each district has a different number of population. The raw approval rate at the district level is not weighted by its population.
+
+        Ans: The division with the highest approval rate is the **Australian Capital Territory**, with an average approval rate of [**63.30%**]{.underline}.
+
+    ```{r}
+    australian_data |> 
+      mutate(`Total votes` = Yes + No + Illegible) |> 
+      group_by(Division) |> 
+      summarize(`Approval rate` = sum(Yes) * 100 / sum(`Total votes`)) |> 
+      arrange(desc(`Approval rate`))
+    ```
+
+    ```{r}
+    australian_data |> 
+      mutate(`Total Votes` = Yes + No + Illegible) |> 
+      group_by(Division) |> 
+      summarize(`Approval rate` = sum(Yes) * 100 / sum(`Total Votes`)) |> 
+      ungroup() |>  # This ensures further summarizations are not grouped by Division
+      summarize("Average approval rate" = mean(`Approval rate`))
+    ```
+
+## Part 4. The Marco-economic Data
+
+This data set runs from July 1954 to March 2017, and includes daily macroeconomic indicators related to the *effective federal funds rate* - or [the interest rate at which banks lend money to each other](https://en.wikipedia.org/wiki/Federal_funds_rate) in order to meet mandated reserve requirements.
+
+1.  **Read in the "FedFundsRate.csv" dataset:**
+
+```{r}
+FedFundsRate <- read_csv("./data/FedFundsRate.csv")
+```
+
+```{r}
+head(FedFundsRate)
+```
+
+2.  **Data Description: Please use the necessary commands and codes and briefly describe this data with a short writing paragraph answering the following questions.**
+
+    ```{r}
+    dim(FedFundsRate)
+    ```
+
+    \(1\) What is the dimension of the data (# of rows and columns)?
+
+    -   Rows: 904
+
+    -   Columns: 10
+
+    \(2\) What do the rows and columns mean in this data?
+
+    -   Rows: Each row represents a specific date (Year, Month, Day).
+
+    -   Columns:
+
+        -   Year, Month, Day: Represents the exact date.
+
+        -   Remaining columns: Represent 10 different macroeconomic indicators related to the effective federal fund rates for that specific date.
+
+    \(3\) What is the unit of observation? In other words, what does each case mean in this data?\
+    Ans: The unit of observation is **Year, Month, Day**, which represents a specific date.
+
+3.  **Generating a date column:**
+
+    Notice that the year, month, and day are three different columns. We will first have to use a string function called `str_c()` from the "stringr" library to combine these three columns into one `date` column. Please delete the \# in the following code chunk.
+
+    ```{r}
+    FedFundsRate_data <- FedFundsRate |> 
+      mutate(date = str_c(Year, Month, Day, sep="-"))
+    head(select(FedFundsRate_data, c(Year, Month, Day, date)))
+    ```
+
+4.  **Move the new created `date` column to the beginning as the first column of the data.**
+
+```{r}
+FedFundsRate_data <- FedFundsRate_data |> relocate(date, .before = Year)
+head(FedFundsRate_data)
+```
+
+2.  **What is the data type of the new `date` column?**\
+    Ans: The data type of the new 'date' column is **character**
+
+    ```{r}
+    typeof(FedFundsRate_data$date)
+    ```
+
+3.  **Transform the `date` column to a \<date\> data.\
+    **Ans:
+
+    ```{r}
+    #Type your code here
+    FedFundsRate_data <- FedFundsRate_data |> 
+      mutate(
+        date = ymd(date)
+        )
+    head(FedFundsRate_data)
+    ```
+
+4.  **Report the following statistics:**
+
+    \(1\) On which *date* was the highest unemployment rate? and the lowest?
+
+    ```{r}
+    FedFundsRate_data |> arrange(desc(`Unemployment Rate`)) |> select(date, `Unemployment Rate`)
+    ```
+
+    -   **Highest unemployment rate**: 10.8% on 1982-11-01, 1982-12-01
+    -   **Lowest unemployment rate**: 3.4% on 1968-09-01, 1968-10-01, 1968-11-01, 1968-12-01, 1969-01-01, 1969-02-01, 1969-03-01, 1969-04-01, 1969-05-01
+
+    ```{r}
+    # Just sorting the same in ascending order
+    FedFundsRate_data |> arrange(`Unemployment Rate`) |> select(date, `Unemployment Rate`)
+    ```
+
+    \(2\) (Optional) Which *decade* has the highest average unemployment rate?
+
+    The **1980s** has the highest average unemployment rate at **7.12**
+
+    ```{r}
+    # Create the Decade column
+    FedFundsRate_data <- FedFundsRate_data |>  
+      mutate(Decade = cut(Year, 
+                          breaks = seq(1950, 2020, by = 10),
+                          labels = paste0(seq(1950, 2010, by = 10), "s")))
+
+    # Group by Decade and calculate average unemployment rate for each decade
+    decade_avg_unemployment <- FedFundsRate_data |> 
+      group_by(Decade) |> 
+      summarise(average_unemployment = mean(`Unemployment Rate`, na.rm = TRUE))
+
+    # Display the results
+    print(decade_avg_unemployment)
+    ```

@@ -1,0 +1,274 @@
+---
+title: "Challenge 5: Visualizaing Time and Space"
+author: "Vara Prasad Gudi"
+date: "11/06/2024"
+format:
+  html:
+    df-print: paged
+    embed-resources: true
+    self-contained-math: true
+---
+
+**Make sure you change the author's name and add the data in the above YAML header.**
+
+## Setup
+
+If you have not installed the following packages, please install them before loading them.
+
+```{r packages}
+# for data wrangling
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(readr)
+
+#for plotting over time
+library(ggplot2)
+
+
+# for plotting over space
+library(sp)
+library(sf)
+library(maps)
+```
+
+## Challenge Overview
+
+In this challenge, we will practice the visualization skills learned in the class with two datasets to capture the temporal and spatial patterns.
+
+There will be coding components and writing components. Please read the instructions for each part and complete the associated tasks and questions.
+
+## Datasets
+
+-   [Part 1. The UFO Sightings Data (50%)](#part-1.-the-ufo-sightings-data-50)
+-   [Part 2. The Hospital Location Data (50%)](#part-2.-the-hospital-location-data-50)
+
+Download the files from Canvas, save them in the proper place in your DACSSS 601 folder, and then read the datasets using the correct R commands.
+
+## Part 1. The UFO Sightings Data (5 pts) {#part-1.-the-ufo-sightings-data-50}
+
+This data contains over 80,000 reports of UFO sightings over the last century in six major countries (and other places). You can learn more about this data by checking: <https://www.kaggle.com/datasets/NUFORC/ufo-sightings>.
+
+1.  **Read and Describe the Data (0.5 pts)**
+
+    ```{r}
+    ufo_data <- read_csv('./data/complete_UFO.csv', show_col_types = FALSE)
+    ```
+
+    ```{r}
+    problems(ufo_data)
+    ```
+
+    ```{r}
+    ufo_data <- ufo_data %>% mutate(`duration (seconds)` = as.numeric(gsub("`", "", `duration (seconds)`)))
+    ```
+
+    ```{r}
+    head(ufo_data)
+    ```
+
+    **What are the dimensions of the data?**
+
+    -   Rows: 88875, Columns: 12
+
+    ```{r}
+    dim(ufo_data)
+    ```
+
+    **What do the columns mean?**
+
+    -   Columns
+
+        -   datetime - Time of UFO sighting
+
+        -   city - City of sighting
+
+        -   state - State of sighting
+
+        -   country - Country where UFO is sighted
+
+        -   shape - Shape of the sighted UFO
+
+        -   duration(seconds) - how many seconds a UFO has been seen
+
+        -   duration(hours/min) - Sighting duration in hours/minutes
+
+        -   comments - Description of sighting
+
+        -   date_posted - Date sighting was reported
+
+        -   latitude and longitude - Geo location of the UFO sighting
+
+        -   …12 - an indicator variable, 0 if lat/long missing
+
+    **What is the unit of observation?**
+
+    -   UFO Sighting information
+
+2.  Please plot a temporal/time-series graph to present the following patterns. **You may need to subset or mutate the data for graphing.**
+
+    \(1\) the total number of UFO sighting reports over the years. **(1.5 pts)**
+
+    ```{r}
+    ufo_modf <- ufo_data
+
+    ufo_modf$datetime <- mdy(ufo_modf$datetime)
+
+    ufo_modf$year <- year(ufo_modf$datetime)
+
+    head(select(ufo_modf,datetime,year))
+    ```
+
+    ```{r}
+    ufo_by_yr <- ufo_modf |> filter(!is.na(year)) |> group_by(year) |> summarise(count = n())
+
+    head(ufo_by_yr)
+    ```
+
+    ```{r}
+    ggplot(ufo_by_yr, aes(x = as.Date(year), y = count))+
+      geom_line()+
+      scale_x_continuous(breaks = seq(1906, 2015, by = 5)) +
+      theme(axis.text.x=element_text(angle=60, hjust=1)) +
+      labs(title = "UFO Sightings (1906 -- 2015)", x="Year", y = "UFO Sightings")
+    ```
+
+    \(2\) the total number of UFO sighting reports by months between 2 010-01-01 and 2014-01-01. **(1.5 pts)**
+
+    ```{r}
+    # add year,month,year-month column in the data
+    ufo_modf <- ufo_modf |>
+      mutate(month = format(datetime, "%m"), year = format(datetime, "%Y"), `year-month`=format(datetime, "%Y-%m"))
+
+    head(select(ufo_modf, datetime, year, month, `year-month`))
+    ```
+
+    ```{r}
+    # filter based on date first
+    ufo_modf <- ufo_modf |>
+      filter(datetime >= as.Date("2010-01-01") & datetime <= as.Date("2014-01-01"))
+
+    # Count sightings by month and year
+    ufo_month_year <- count(ufo_modf, `year-month`, name = "UFO Sightings")
+
+    # Plotting
+    ggplot(ufo_month_year, aes(x=`year-month`, y=`UFO Sightings`,group=1)) +
+      geom_point(size=1) +
+      geom_line() +
+      labs(title="Monthly UFO Sightings Trends (Jan 2010 - Jan 2014)", x="Month", y="No. of Sightings") +
+      theme_minimal() + 
+      theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+    ```
+
+3.  Please write a paragraph describing the patterns you find on the two graphs above. **(1.5 pts)**
+
+    -   [**In Part 1**]{.underline}, the graph shows a consistently low number of UFO sightings from 1930 to 1980 (pre-internet era), followed by a noticeable increase in sightings in more recent years, indicating a clear upward trend. This suggests that advancements in technology and communication may have contributed to the rise in reported sightings.
+
+    -   [**In Part 2**]{.underline}, a recurring seasonal pattern is evident, with the highest number of UFO sightings occurring in July each year, followed by a slight decrease in August and September. This annual cycle suggests that sightings are more frequent during the summer months, potentially due to increased outdoor activities or clearer night skies during this time.
+
+4.  **(Optional)** Use `gganimte` and `gifsky` packages to plot gifs of the above time-series plots. You can refer to codes and commands from the Week 9 code. **(0 pts)**
+
+    ```{r p1-4}
+    # type your code here.
+    ```
+
+5.  **(Optional)** Suppose we are interested in describing the country variations in types and numbers of UFO sighting reports. How can we use bar plots to visualize the difference across countries (using the `country` column, you can recode the empty cells with `"others"`)? Is this an effective visualization? Why or why not? **Note that you may need to do data transformation or mutation in order to make the graph.** **(0 pts)**
+
+    ```{r p1-5}
+    # type your code here.
+    ```
+
+## Part 2. The Hospital Location Data (5 pts) {#part-2.-the-hospital-location-data-50}
+
+This data contains the locations of hospitals in the United States. You can learn more about this data by checking: <https://www.kaggle.com/datasets/andrewmvd/us-hospital-locations>
+
+1.  **Read and Describe the Data (0.5 pts)**
+
+    ```{r}
+    US_hosp_info <- read_csv('./data/us_hospital_locations.csv', show_col_types = FALSE)
+
+    head(US_hosp_info)
+    ```
+
+    **What are the dimensions of the data?**
+
+    -   Rows: 7596, Columns: 15
+
+    ```{r}
+    dim(US_hosp_info)
+    ```
+
+    What do the columns mean?
+
+    -   Columns:
+
+        -   ID - Unique identifier for each hospital
+
+        -   NAME - Hospital name
+
+        -   ADDRESS - Street address of the hospital
+
+        -   CITY - City where the hospital is located
+
+        -   STATE - State where the hospital is located
+
+        -   ZIP - ZIP code of the hospital's location
+
+        -   TYPE - Hospital type (e.g., General Acute Care, Psychiatric, Children, Long Term Care, Critical Access, Rehabilitation, Military, Women, Special, Chronic Disease)
+
+        -   STATUS - Operational status of the hospital (Open or Closed)
+
+        -   POPULATION - Patient population in the hospital
+
+        -   COUNTY - County where the hospital is located
+
+        -   COUNTRY - Country where the hospital is located
+
+        -   LATITUDE and LONGITUDE - Geo Location of the hospital
+
+        -   OWNER - Ownership type (e.g., Proprietary, Local Government, District/Authority Government, Non-Profit, State Government, Federal Government, Limited Liability Company)
+
+        -   BEDS - Number of beds available in the hospital
+
+            **What is the unit of observation?**\
+            It is [US Hospital’s information]{.underline}
+
+2.  Download the `cb_2018_us_state_500k.shp` data from <https://www2.census.gov/geo/tiger/GENZ2018/shp/cb_2018_us_state_500k.zip>). Put the whole `cb_2018_us_state_500k` folder in your data folder. Plot a USA map with states boundaries using `geom_sf()`. **(1.5 pts)**
+
+    ```{r}
+    states_geom <- st_read("./data/cb_2018_us_state_500k/cb_2018_us_state_500k.shp")
+    ```
+
+    ```{r}
+    head(states_geom)
+    ```
+
+    ```{r}
+    dim(states_geom)
+    ```
+
+    ```{r}
+    # USA Map with state boundaries
+    USA_Map <- ggplot() + 
+      geom_sf(data = states_geom) + 
+      coord_sf(xlim = c(-180, -65), ylim = c(20, 70)) + 
+      theme_classic()
+
+    USA_Map
+    ```
+
+3.  Plot the hospital locations using the *LONGITUDE* and *LATITUDE* with `geom_point()` on the USA map generated above. Mark OPEN and CLOSED hospitals using different colors. **(1.5 pts)**
+
+    ```{r}
+    hospitals_in_USA <- USA_Map +
+      geom_point(data = US_hosp_info, aes(x = LONGITUDE, y = LATITUDE, color = STATUS), size = 0.2) +
+      scale_color_manual(values = c("OPEN" = "green", "CLOSED" = "red")) +
+      labs(title = "Hospital Locations by Operational Status (Open/Closed)", x = "Longitude", y = "Latitude")
+    ```
+
+    ```{r}
+    print(hospitals_in_USA)
+    ```
+
+4.  **Please write a paragraph describing the pattern of the hospital locations you find on the map above.** **(1.5 pts)\
+    **The map above shows that most hospitals in the dataset are open (marked in green), with only a small number marked as closed. Hospital locations are concentrated primarily in the eastern and mid-eastern regions, with a secondary concentration along the West Coast. The eastern region has a notably high density of hospitals compared to the less dense distribution in the western region. Alaska has very few hospitals, while Hawaii, though also having a limited number, shows a higher density of hospitals within its area.

@@ -1,0 +1,14 @@
+# Ignore R session data files
+*.RData
+*.Rhistory
+
+# Ignore temporary or backup files
+*.Rproj.user/
+*.Rproj
+*.swp
+*.tmp
+.DS_Store
+
+# Ignore system files
+__MACOSX/
+Thumbs.db
